@@ -32,19 +32,20 @@ def homepage():
 
 @ask.launch
 def start_skill():
-  hi = 'Hola! dime si o no?'
+  hi = '¡Hola! ¿Quieres una demostración de Coque?'
   return question(hi)
 
 
 @ask.intent("YesIntent")
 def share_headlines():
-  headlines = get_headlines('... ')
-  headline_msg = 'Estas son las lineas {}'.format(headlines)
-  return statement(headline_msg)
+#  headlines = get_headlines('... ')
+#  headline_msg = 'Estas son las lineas {}'.format(headlines)
+#  return statement(headline_msg)
+  return statement('Nooooooo, maaaaaal, maaaaal, ¡garros!, ¡garros!')
 
 @ask.intent("NoIntent")
 def no_intent():
-  bye_text = 'hasta luego moreno!'
+  bye_text = '¡Pues ale! Que te de el aire'
   return statement(bye_text)
 
 if __name__ == '__main__':
