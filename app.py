@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_ask import Ask, statement, question, session
 from wakeonlan import send_magic_packet
+import paramiko
 import logging
 
 logging.getLogger('flask_ask').setLevel(logging.DEBUG)
@@ -13,8 +14,12 @@ id_fran = "amzn1.ask.account.AHJWELXVQRIEFFKDTMDOHFIRCF6I3IMKWHVPMLT43U3MVFCHAC2
 sitios_ester = {'salón', 'de ester'}
 id_ester = "amzn1.ask.account.AHJWELXVQRIEFFKDTMDOHFIRCF6I3IMKWHVPMLT43U3MVFCHAC2V4JBJK5JXHJI47IQBAVTSP2Z2I2Y665FUNBIOY6X3UHLS63V7EBJ6K3SMFZ7K5MFUU2NVBOCPSM6YLTJRX4PK7YFKSWL3FUD5UKRSB3MJ6SVHJUVF7EMBNZWW2MOJOCSHFBSTUKDZE2BZURFPW7IAH4P5L6Y"
 
-arranque = {'arranca', 'inicia'}
-parada = {'detén', 'para'}
+arranque = {'arranca', 'inicia', 'lanza'}
+parada = {'detén', 'para', 'mata'}
+
+cmdArrancarMC = "/opt/minecraft/minecraft_server/launch.sh"
+cmdGetPIDMC = "ps -fea | grep mine | grep java | grep -v grep | awk '{print $2}'"
+cmdPararMC = "kill -9 $(%s)" % getPIDMC
 
 @ask.launch
 def start_skill():
@@ -26,6 +31,28 @@ def user_name(id):
   else:
     return "Ester"
 
+def ssh_command(hostname='localhost', port='22', username='user', password='NaN', command='dir /'):
+
+  ret = ""
+  err = ""
+
+  try:
+    client = paramiko.SSHClient()
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(paramiko.WarningPolicy)
+
+    client.connect(hostname, port=port, username=username, password=password)
+
+    stdin, stdout, stderr = client.exec_command(command)
+    ret = stdout.read().decode('utf-8')
+    err = stderr.read().decode('utf-8')
+
+  except Exception as e:
+    err = str(e)
+    #print('error en la conexión ssh %s' % str(e))
+  finally:
+    client.close()
+    return [ret,err]
 
 def fran_wol():
   try:
@@ -40,6 +67,23 @@ def ester_wol():
     return statement('Se ha enviado la orden al portátil de Ester')
   except:
     return statement('No he podido arrancar el portátil de Ester')
+
+def enviar_cmd(cmd):
+  try:
+    stdin, stdout, stderr = ssh_command(hostname='putisimocoque.tk', port='1986', username='fran', password='matrix05', command=cmd)
+    return [stdout.decode('utf-8'), stderr.decode('uft-8']
+  except Exception as e:
+    return ["", str(e)]
+
+def iniciar_servidor():
+    return enviar_cmd(cmdArrancarMC)
+
+def parar_servidor():
+    return enviar_cmd(cmdPararMC)
+
+def revisar_servidor():
+    return enviar_cmd(cmdGetPIDMC)
+
 
 @ask.intent("WOLIntent", mapping={'verbo':'verbo', 'cosa':'cosa', 'sitio':'sitio'})
 def wol(verbo, cosa, sitio):
@@ -74,17 +118,40 @@ def mywol(verbo, cosa):
 
 
 @ask.intent("MCStartStopIntent", mapping={'instruccion':'instruccion'})
-def mywol(instruccion):
+def mcstartstop(instruccion):
   usuario = user_name(session.user.userId)
 #  print("usuario: %s" % usuario)
-  if (instrucion in arranque):
 
-    return statement('Arrancando el servidor de minecraft')
-  elif (instruccion in parada):
+  pid = revisar_servidor()
 
-    return statement('Deteniendo el servidor de minecraft')
-  else:
-    return question('%s, no he entendido si quieres parar o arrancar el servidor' % usuario)
+  if (pid is not None): #si está arrancado
+    if (instrucion in arranque):
+      return statement('El servidor de Minecraft ya estaba activo, se ejecuta ahora mismo con el PID: %s' % pid)
+    else:
+      parar_servidor()
+      return statement('Se ha enviado la orden de detener el servidor')
+
+
+  else: #si está parado
+    if (instrucion in arranque):
+      iniciar_servidor()
+      return statement('Se ha enviado la orden de arranque al servidor')
+    else:
+      return statement('El servidor ya estaba parado')
+
+
+@ask.intent("MCStatusIntent")
+def mcstatus():
+  usuario = user_name(session.user.userId)
+#  print("usuario: %s" % usuario)
+
+  pid = revisar_servidor()
+
+  if (pid is not None): #si está arrancado
+    return statement('El servidor de Minecraft está arrancado con el PID: %s' % pid)
+
+  else: #si está parado
+    return statement('El servidor de Minecraft está parado')
 
 if __name__ == '__main__':
   app.run(debug=True, host='0.0.0.0', port=5443)
