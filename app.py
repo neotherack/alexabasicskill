@@ -19,7 +19,7 @@ parada = {'detén', 'para', 'mata'}
 
 cmdArrancarMC = "/opt/minecraft/minecraft_server/launch.sh"
 cmdGetPIDMC = "ps -fea | grep mine | grep java | grep -v grep | awk '{print $2}'"
-cmdPararMC = "kill -9 $(%s)" % getPIDMC
+cmdPararMC = "kill -9 $(%s)" % cmdGetPIDMC
 
 @ask.launch
 def start_skill():
@@ -71,7 +71,7 @@ def ester_wol():
 def enviar_cmd(cmd):
   try:
     stdin, stdout, stderr = ssh_command(hostname='putisimocoque.tk', port='1986', username='fran', password='matrix05', command=cmd)
-    return [stdout.decode('utf-8'), stderr.decode('uft-8']
+    return [stdout.decode('utf-8'), stderr.decode('uft-8')]
   except Exception as e:
     return ["", str(e)]
 
