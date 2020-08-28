@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_ask import Ask, statement, question, session
 from wakeonlan import send_magic_packet
+#import paramiko
 import logging
 
 logging.getLogger('flask_ask').setLevel(logging.DEBUG)
@@ -29,8 +30,30 @@ def user_name(id):
     return "Fran"
   else:
     return "Ester"
+'''
+def ssh_command(hostname='localhost', port='22', username='user', password='NaN', command='dir /'):
 
+  ret = ""
+  err = ""
 
+  try:
+    client = paramiko.SSHClient()
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(paramiko.WarningPolicy)
+
+    client.connect(hostname, port=port, username=username, password=password)
+
+    stdin, stdout, stderr = client.exec_command(command)
+    ret = stdout.read().decode('utf-8')
+    err = stderr.read().decode('utf-8')
+
+  except Exception as e:
+    err = str(e)
+    #print('error en la conexión ssh %s' % str(e))
+  finally:
+    client.close()
+    return [ret,err]
+'''
 def fran_wol():
   try:
     send_magic_packet('00.e0.4c.68.0d.4c')
@@ -47,6 +70,8 @@ def ester_wol():
 
 def enviar_cmd(cmd):
   try:
+#    stdin, stdout, stderr = ssh_command(hostname='putisimocoque.tk', port='1986', username='fran', password='matrix05', command=cmd)
+#    return [stdout.decode('utf-8'), stderr.decode('uft-8')]
     return ['1999','']
   except Exception as e:
     return ["", str(e)]
