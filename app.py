@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_ask import Ask, statement, question, session
 from wakeonlan import send_magic_packet
+import paramiko
 import logging
 
 logging.getLogger('flask_ask').setLevel(logging.DEBUG)
@@ -30,6 +31,31 @@ def user_name(id):
   else:
     return "Ester"
 
+def ssh_command(hostname='localhost', port='22', username='user', password='NaN', command='dir /'):
+
+  ret = ""
+  err = ""
+
+  try:
+    client = paramiko.SSHClient()
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(paramiko.WarningPolicy)
+
+    print("debug: %s %s %s %s" % (hostname, port, username, password))
+    client.connect(hostname, port=port, username=username, password=password)
+    print("command: %s" % command)
+
+    stdin, stdout, stderr = client.exec_command(command)
+    ret = stdout.read().decode('utf-8')
+    err = stderr.read().decode('utf-8')
+
+    return [ret,err]
+
+  except Exception as e:
+    return ["",str(e)]
+    #print('error en la conexión ssh %s' % str(e))
+  finally:
+    client.close()
 
 def fran_wol():
   try:
@@ -47,7 +73,13 @@ def ester_wol():
 
 def enviar_cmd(cmd):
   try:
-    return ['1999','']
+    stdout, stderr = ssh_command(hostname='putisimocoque.tk', port='1986', username='fran', password='matrix05', command=cmd)
+
+    print("stdout: %s" % stdout.strip())
+    print("stderr: %s" % stderr.strip())
+
+    return [stdout.strip(), stderr.strip()]
+#    return ['1999','']
   except Exception as e:
     return ["", str(e)]
 
@@ -98,19 +130,19 @@ def mcstartstop(instruccion):
   usuario = user_name(session.user.userId)
 #  print("usuario: %s" % usuario)
 
-  pid = revisar_servidor()
+  pid, err = revisar_servidor()
 
   if (pid is not None): #si está arrancado
-    if (instrucion in arranque):
+    if (instruccion in arranque):
       return statement('El servidor de Minecraft ya estaba activo, se ejecuta ahora mismo con el PID: %s' % pid)
     else:
-      parar_servidor()
+      info, err = parar_servidor()
       return statement('Se ha enviado la orden de detener el servidor')
 
 
   else: #si está parado
-    if (instrucion in arranque):
-      iniciar_servidor()
+    if (instruccion in arranque):
+      info, err = iniciar_servidor()
       return statement('Se ha enviado la orden de arranque al servidor')
     else:
       return statement('El servidor ya estaba parado')
@@ -121,7 +153,10 @@ def mcstatus():
   usuario = user_name(session.user.userId)
 #  print("usuario: %s" % usuario)
 
-  pid = revisar_servidor()
+  pid, err = revisar_servidor()
+
+  print("pid %s" % pid)
+  print("err %s" % err)
 
   if (pid is not None): #si está arrancado
     return statement('El servidor de Minecraft está arrancado con el PID: %s' % pid)
