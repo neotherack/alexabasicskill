@@ -1,30 +1,30 @@
 [Main-Settings]
-host = 0.0.0.0
-port = 8443
+host = 127.0.0.1
+port = 8080
 
 [SSH-Connection]
 hostname = your.host.com
 port = 22
-username = your_user
-password = your_pass
+username = user
+password = pass
 
 [SSH-Commands]
-cmdArrancarMC = start command
-cmdGetPIDMC = get pid command
-cmdPararMC = stop command
+cmdStartMC = start command
+cmdGetPIDMC = pid command
+cmdStopMC = stop command
 
 [PC-Places]
-sitios_fran = json places
-sitios_ester = json places
+fran_places = place one,two,and three places
+ester_places = one more,and finish
 
 [MC-Actions]
-arranque = json start actions
-parada = json stop actions
+start = start,launch,trigger
+stop = stop,kill,take down
 
 [IDs-Amazon]
-id_fran = your_id
-id_ester = other_id
+id_fran = id1
+id_ester = id2
 
 [MAC]
-fran = one_mac
-ester = another_mac
+fran_laptop =  xx.xx.xx.xx.xx.xx
+ester_laptop = yy.yy.yy.yy.yy.yy

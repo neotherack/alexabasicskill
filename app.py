@@ -22,27 +22,14 @@ actions = config['MC-Actions']
 amzids = config['IDs-Amazon']
 macs = config['MAC']
 
-sitios_fran = places['sitios_fran']
-sitios_ester = places['sitios_ester']
-
-id_fran = amzids['id_fran']
-id_ester = amzids['id_ester']
-
-arranque = actions['arranque']
-parada = actions['parada']
-
-cmdArrancarMC = sshcom['cmdArrancarMC']
-cmdGetPIDMC = sshcom['cmdGetPIDMC']
-cmdPararMC = sshcom['cmdPararMC']
-
 @ask.launch
 def start_skill():
   return question('¡Hola {}! ¿qué quieres que haga?'.format(user_name(session.user.userId))).reprompt('No te he entendido bien, ¿me lo podrías repetir?')
 
 def user_name(id):
-  if (id == id_fran):
+  if (id == amzids['id_fran']):
     return "Fran"
-  else:
+  else: #amzids['id_ester']
     return "Ester"
 
 def ssh_command(hostname='localhost', port='22', username='user', password='NaN', command='dir /'):
@@ -70,14 +57,14 @@ def ssh_command(hostname='localhost', port='22', username='user', password='NaN'
 
 def fran_wol():
   try:
-    send_magic_packet(macs['fran'])
+    send_magic_packet(macs['fran_laptop'])
     return statement('Se ha enviado la orden al PC de la oficina')
   except:
     return statement('No he podido arrancar el ordenador de la oficina')
 
 def ester_wol():
   try:
-    send_magic_packet(macs['ester'])
+    send_magic_packet(macs['ester_laptop'])
     return statement('Se ha enviado la orden al portátil de Ester')
   except:
     return statement('No he podido arrancar el portátil de Ester')
@@ -91,23 +78,23 @@ def enviar_cmd(cmd):
     return ["", str(e)]
 
 def iniciar_servidor():
-    return enviar_cmd(cmdArrancarMC)
+    return enviar_cmd(sshcom['cmdStartMC'])
 
 def parar_servidor():
-    return enviar_cmd(cmdPararMC)
+    return enviar_cmd(sshcom['cmdStopMC'])
 
 def revisar_servidor():
-    return enviar_cmd(cmdGetPIDMC)
+    return enviar_cmd(sshcom['cmdGetPIDMC'])
 
 
 @ask.intent("WOLIntent", mapping={'verbo':'verbo', 'cosa':'cosa', 'sitio':'sitio'})
 def wol(verbo, cosa, sitio):
   usuario = user_name(session.user.userId)
 
-  if (sitio in sitios_fran):
+  if (sitio in places['fran_places'].split(',')):
     return fran_wol()
 
-  elif (sitio in sitios_ester):
+  elif (sitio in places['ester_places'].split(',')):
     return ester_wol()
 
   else:
@@ -135,9 +122,9 @@ def mcstartstop(instruccion):
   pid, err = revisar_servidor()
 
   if (pid is not None): #si está arrancado
-    if (instruccion in arranque):
+    if (instruccion in actions['start'].split(',')):
       return statement('El servidor de Minecraft ya estaba activo, se ejecuta ahora mismo con el PID: %s' % pid)
-    else:
+    else: # actions['stop'].split(',')
       info, err = parar_servidor()
       return statement('Se ha enviado la orden de detener el servidor')
 
