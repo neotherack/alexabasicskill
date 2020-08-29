@@ -24,7 +24,7 @@ def ssh_command(hostname='localhost', port='22', username='user', password='NaN'
     client.close()
 
 
-def enviar_cmd(cmd):
+def enviar_cmd(sshconn, cmd):
   try:
     stdout, stderr = ssh_command(hostname=sshconn['hostname'], port=sshconn['port'], username=sshconn['username'], password=sshconn['password'], command=cmd)
 

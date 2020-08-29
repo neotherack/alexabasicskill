@@ -29,13 +29,13 @@ def user_name(id):
     return "Ester"
 
 def iniciar_servidor():
-    return enviar_cmd(sshcom['cmdStartMC'])
+    return enviar_cmd(sshconn, sshcom['cmdStartMC'])
 
 def parar_servidor():
-    return enviar_cmd(sshcom['cmdStopMC'])
+    return enviar_cmd(sshconn, sshcom['cmdStopMC'])
 
 def revisar_servidor():
-    return enviar_cmd(sshcom['cmdGetPIDMC'])
+    return enviar_cmd(sshconn, sshcom['cmdGetPIDMC'])
 
 
 @ask.intent("WOLIntent", mapping={'verbo':'verbo', 'cosa':'cosa', 'sitio':'sitio'})
@@ -43,10 +43,10 @@ def wol(verbo, cosa, sitio):
   usuario = user_name(session.user.userId)
 
   if (sitio in places['fran_places'].split(',')):
-    return fran_wol()
+    return statement(fran_wol(macs))
 
   elif (sitio in places['ester_places'].split(',')):
-    return ester_wol()
+    return statement(ester_wol(macs))
 
   else:
     return question('%s, por favor, repite el comando relacionado con %s' % (usuario, sitio))
@@ -91,10 +91,10 @@ def mcstartstop(instruccion):
 @ask.intent("MCStatusIntent")
 def mcstatus():
   usuario = user_name(session.user.userId)
-  pid, err = revisar_servidor()
+  info, err = revisar_servidor()
 
-  if (pid is not None): #si está arrancado
-    return statement('El servidor de Minecraft está arrancado con el PID: %s' % pid)
+  if (info is not None): #si está arrancado
+    return statement('El servidor de Minecraft está arrancado: %s' % info)
 
   else: #si está parado
     return statement('El servidor de Minecraft está parado')
