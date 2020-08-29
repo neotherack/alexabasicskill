@@ -1,18 +1,14 @@
 from flask import Flask
 from flask_ask import Ask, statement, question, session
-from wakeonlan import send_magic_packet
-import logging
-import configparser
 
+from lib.conf import *
 from lib.ssh import *
-
-logging.getLogger('flask_ask').setLevel(logging.DEBUG)
+from lib.wol import *
 
 app = Flask(__name__)
 ask = Ask(app, "/")
 
-config = configparser.ConfigParser()
-config.read('settings.conf')
+config = load_config('settings.conf')
 
 serv = config['Main-Settings']
 sshconn = config['SSH-Connection']
@@ -31,28 +27,6 @@ def user_name(id):
     return "Fran"
   else: #amzids['id_ester']
     return "Ester"
-
-def fran_wol():
-  try:
-    send_magic_packet(macs['fran_laptop'])
-    return statement('Se ha enviado la orden al PC de la oficina')
-  except:
-    return statement('No he podido arrancar el ordenador de la oficina')
-
-def ester_wol():
-  try:
-    send_magic_packet(macs['ester_laptop'])
-    return statement('Se ha enviado la orden al portátil de Ester')
-  except:
-    return statement('No he podido arrancar el portátil de Ester')
-
-def enviar_cmd(cmd):
-  try:
-    stdout, stderr = ssh_command(hostname=sshconn['hostname'], port=sshconn['port'], username=sshconn['username'], password=sshconn['password'], command=cmd)
-
-    return [stdout.strip(), stderr.strip()]
-  except Exception as e:
-    return ["", str(e)]
 
 def iniciar_servidor():
     return enviar_cmd(sshcom['cmdStartMC'])
@@ -117,7 +91,6 @@ def mcstartstop(instruccion):
 @ask.intent("MCStatusIntent")
 def mcstatus():
   usuario = user_name(session.user.userId)
-
   pid, err = revisar_servidor()
 
   if (pid is not None): #si está arrancado
