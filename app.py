@@ -29,14 +29,16 @@ def user_name(id):
     return "Ester"
 
 def iniciar_servidor():
-    return enviar_cmd(sshconn, sshcom['cmdStartMC'])
+  return enviar_cmd(sshconn, sshcom['cmdStartMC'])
 
 def parar_servidor():
-    return enviar_cmd(sshconn, sshcom['cmdStopMC'])
+  return enviar_cmd(sshconn, sshcom['cmdStopMC'])
 
 def revisar_servidor():
-    return enviar_cmd(sshconn, sshcom['cmdGetPIDMC'])
+  return enviar_cmd(sshconn, sshcom['cmdStatusMC'])
 
+def pid_servidor():
+  return enviar_cmd(sshconn, sshcom['cmdGetPIDMC'])
 
 @ask.intent("WOLIntent", mapping={'verbo':'verbo', 'cosa':'cosa', 'sitio':'sitio'})
 def wol(verbo, cosa, sitio):
@@ -70,7 +72,7 @@ def mywol(verbo, cosa):
 def mcstartstop(instruccion):
   usuario = user_name(session.user.userId)
 
-  pid, err = revisar_servidor()
+  pid, err = pid_servidor()
 
   if (pid is not None): #si está arrancado
     if (instruccion in actions['start'].split(',')):
