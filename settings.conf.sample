@@ -1,0 +1,30 @@
+[Main-Settings]
+host = 0.0.0.0
+port = 8443
+
+[SSH-Connection]
+hostname = your.host.com
+port = 22
+username = your_user
+password = your_pass
+
+[SSH-Commands]
+cmdArrancarMC = start command
+cmdGetPIDMC = get pid command
+cmdPararMC = stop command
+
+[PC-Places]
+sitios_fran = json places
+sitios_ester = json places
+
+[MC-Actions]
+arranque = json start actions
+parada = json stop actions
+
+[IDs-Amazon]
+id_fran = your_id
+id_ester = other_id
+
+[MAC]
+fran = one_mac
+ester = another_mac
