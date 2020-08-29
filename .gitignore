@@ -1,4 +1,5 @@
-.git/**
-__pycache__/**
+.git/
+__pycache__/
 *.log
 *.out
+*.conf
